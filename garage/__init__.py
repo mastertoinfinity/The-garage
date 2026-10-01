@@ -1,0 +1,1 @@
+"""Garage service booking application."""

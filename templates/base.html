@@ -1,0 +1,36 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111214">
+  <title>{% block title %}THE GARAGE | Honest work. Better driving.{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <script src="{% static 'js/site.js' %}" defer></script>
+</head>
+<body>
+  <div class="topline"><span>INDEPENDENT AUTO CARE</span><span>MON-FRI 7:30-6:00 <i></i> SAT 8:00-3:00</span><a href="tel:+15550148200">(555) 014-8200</a></div>
+  <header class="site-header">
+    <a class="brand" href="{% url 'home' %}" aria-label="The Garage home"><span class="brand-mark">TG<span></span></span><span class="brand-name">THE <b>GARAGE</b><small>GOOD HANDS. GREAT DRIVES.</small></span></a>
+    <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false"><span></span><span></span></button>
+    <nav class="main-nav" aria-label="Main navigation">
+      <a href="{% url 'services' %}">Services</a><a href="{% url 'home' %}#reviews">Reviews</a><a href="{% url 'contact' %}">Contact</a>
+      {% if user.is_authenticated %}<a href="{% url 'dashboard' %}">My garage</a><a class="nav-cta" href="{% url 'book_service' %}">Book service <span>↗</span></a>
+      <form class="nav-logout" action="{% url 'logout' %}" method="post">{% csrf_token %}<button type="submit">Sign out</button></form>
+      {% else %}<a href="{% url 'login' %}">Sign in</a><a class="nav-cta" href="{% url 'book_service' %}">Book service <span>↗</span></a>{% endif %}
+    </nav>
+  </header>
+  <main>
+    {% if messages %}<div class="message-stack">{% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="footer-main"><a class="brand" href="{% url 'home' %}"><span class="brand-mark">TG<span></span></span><span class="brand-name">THE <b>GARAGE</b><small>GOOD HANDS. GREAT DRIVES.</small></span></a><p>Good work, straight answers,<br>and a car you can count on.</p><div class="footer-links"><a href="{% url 'services' %}">Services</a><a href="{% url 'contact' %}">Find us</a><a href="{% url 'booking_history' %}">Service history</a></div></div>
+    <div class="footer-bottom"><span>© 2026 THE GARAGE AUTO SERVICE</span><span>BUILT ON TRUST. BACKED BY GOOD WORK.</span></div>
+  </footer>
+</body>
+</html>

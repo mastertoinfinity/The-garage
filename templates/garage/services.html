@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Services | THE GARAGE{% endblock %}
+{% block content %}
+<section class="page-intro"><p class="eyebrow"><span></span> WHAT WE DO</p><h1>SERVICE THAT<br><em>GOES THE DISTANCE.</em></h1><p>Clear recommendations, quality parts and work you can feel good about.</p></section>
+<section class="section catalog"><div class="catalog-note"><span>01 — 06</span><p>THE RIGHT FIX, THE FIRST TIME.</p></div><div class="catalog-list">{% for service in services %}<article class="catalog-item"><span class="catalog-icon">{% if service.icon == 'oil' %}◉{% elif service.icon == 'brake' %}◎{% elif service.icon == 'scan' %}⌘{% elif service.icon == 'tire' %}◌{% else %}✳{% endif %}</span><div class="catalog-info"><h2>{{ service.name }}</h2><p>{{ service.description }}</p><span>{{ service.duration_minutes }} MIN ESTIMATED</span></div><div class="catalog-price"><b>₹{{ service.price|floatformat:0 }}</b><small>STARTING AT</small></div><a class="catalog-arrow" href="{% url 'book_service' %}?service={{ service.id }}" aria-label="Book {{ service.name }}">↗</a></article>{% empty %}<p>No services are listed at the moment.</p>{% endfor %}</div></section>
+<section class="booking-band compact-band"><div><p class="eyebrow"><span></span> NOT SURE WHAT YOU NEED?</p><h2>WE'LL FIGURE IT<br><em>OUT TOGETHER.</em></h2></div><a class="button button-light" href="{% url 'contact' %}">Talk to our team <span>↗</span></a></section>
+{% endblock %}
