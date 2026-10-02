@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Admin Login | THE GARAGE{% endblock %}
+{% block content %}
+<section class="page-intro"><p class="eyebrow"><span></span> THE GARAGE OPERATIONS</p><h1>ADMIN<br><em>PORTAL.</em></h1><p>Sign in to review garage-wide bookings and branch activity.</p></section>
+<section class="section management-login-section"><div class="form-panel management-login-panel"><p class="eyebrow"><span></span> STAFF SIGN IN</p><h2>WELCOME<br><em>BACK.</em></h2>
+  <form method="post" class="form-grid management-login-form">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-field full field-error">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}<div class="form-field full"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>{% endfor %}
+    <button class="button button-red" type="submit">Sign in to admin <span>↗</span></button>
+  </form>
+  <p class="management-login-note">Branch managers are taken directly to their assigned branch desk.</p>
+  <div class="auth-admin-switch" style="margin-top: 1.5rem; text-align: center;">
+    <p style="font-size: 11px; color: #888; margin-bottom: 8px;">Customer looking for appointments or service records?</p>
+    <a class="button button-outline button-sm" href="{% url 'login' %}">Switch to Customer Login <span>↗</span></a>
+  </div>
+</div></section>
+{% endblock %}

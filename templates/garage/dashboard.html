@@ -2,5 +2,95 @@
 {% block title %}My Garage | THE GARAGE{% endblock %}
 {% block content %}
 <section class="page-intro account-intro"><p class="eyebrow"><span></span> YOUR GARAGE</p><h1>GOOD TO SEE YOU,<br><em>{{ user.first_name|default:user.username|upper }}.</em></h1><p>Your vehicle care, all in one place.</p></section>
-<section class="section dashboard-section"><div class="dashboard-head"><div><span class="detail-label">YOUR UPCOMING VISITS</span><h2>READY WHEN<br><em>YOU ARE.</em></h2></div><a class="button button-red" href="{% url 'book_service' %}">Book service <span>↗</span></a></div><div class="booking-list">{% for booking in upcoming %}<article class="booking-row"><div class="booking-date"><b>{{ booking.appointment_date|date:'d' }}</b><span>{{ booking.appointment_date|date:'M Y'|upper }}</span></div><div class="booking-info"><h3>{{ booking.service.name }}</h3><p>{{ booking.vehicle }} &nbsp;·&nbsp; {{ booking.appointment_time|time:'g:i A' }}</p></div><span class="status status-{{ booking.status }}">{{ booking.get_status_display }}</span><span class="booking-cost">₹{{ booking.service.price|floatformat:2 }}</span></article>{% empty %}<div class="empty-state"><span>01</span><h3>NOTHING ON THE LIFT.</h3><p>Your upcoming appointments will show here.</p><a href="{% url 'book_service' %}" class="text-link">Schedule a service →</a></div>{% endfor %}</div><div class="history-link"><span>{{ booking_count }} TOTAL APPOINTMENT{{ booking_count|pluralize }}</span><a class="text-link" href="{% url 'booking_history' %}">View full service history →</a></div></section>
+<section class="section dashboard-section">
+  {% for booking in active_deliveries %}
+  <div class="delivery-notice-strip">
+    <span class="delivery-strip-icon">🚗</span>
+    <div class="delivery-strip-body">
+      <strong>VEHICLE IS READY TO DELIVER!</strong>
+      <p>Your vehicle ({{ booking.vehicle_number }}) service is complete and payment is verified. You can collect your vehicle now from <b>{{ booking.location.name|default:'THE GARAGE' }}</b>.</p>
+    </div>
+    <a class="button button-light button-sm" href="{% url 'invoice_detail' booking.pk %}">View paid invoice <span>→</span></a>
+  </div>
+  {% endfor %}
+
+  {% for booking in pending_verifications %}
+  <div class="verification-notice-strip">
+    <span class="verification-strip-icon">⏳</span>
+    <div class="delivery-strip-body">
+      <strong>PAYMENT SUBMITTED · AWAITING ADMIN VERIFICATION</strong>
+      <p>UPI transaction reference <b>{{ booking.payment_reference }}</b> submitted for {{ booking.vehicle_number }}. The garage admin is verifying the transaction. Once verified, your vehicle delivery message will appear.</p>
+    </div>
+    <a class="button button-outline button-sm" href="{% url 'invoice_detail' booking.pk %}">View invoice <span>→</span></a>
+  </div>
+  {% endfor %}
+
+  {% for booking in pending_payments %}
+  <div class="invoice-notice-strip">
+    <span class="invoice-strip-icon">💳</span>
+    <div class="delivery-strip-body">
+      <strong>INVOICE READY · ₹{{ booking.effective_price|floatformat:2 }}</strong>
+      <p>Service invoice updated for {{ booking.vehicle_number }}. Pay via UPI to submit for admin delivery verification.</p>
+    </div>
+    <a class="button button-red button-sm" href="{% url 'invoice_detail' booking.pk %}">Pay via UPI <span>↗</span></a>
+  </div>
+  {% endfor %}
+
+  <div class="dashboard-head">
+    <div>
+      <span class="detail-label">YOUR UPCOMING VISITS</span>
+      <h2>READY WHEN<br><em>YOU ARE.</em></h2>
+    </div>
+    <div class="dashboard-head-actions">
+      <a class="button button-outline button-sm" href="{% url 'management_login' %}">Switch to Admin Login ↗</a>
+      <a class="button button-red" href="{% url 'book_service' %}">Book service <span>↗</span></a>
+    </div>
+  </div>
+
+  <div class="booking-list">
+    {% for booking in upcoming %}
+    <article class="booking-row">
+      <div class="booking-date">
+        <b>{{ booking.appointment_date|date:'d' }}</b>
+        <span>{{ booking.appointment_date|date:'M Y'|upper }}</span>
+      </div>
+      <div class="booking-info">
+        <h3>{{ booking.service.name }}</h3>
+        <p>{{ booking.vehicle_number }} · {{ booking.get_vehicle_type_display }}{% if booking.car_type %} / {{ booking.get_car_type_display }}{% endif %} · {{ booking.location.name|default:'Central workshop' }} · {{ booking.appointment_time|time:'g:i A' }}</p>
+        {% if booking.is_vehicle_ready %}
+        <div class="booking-inline-alert">
+          <span class="badge-ready">🚗 Vehicle ready to deliver</span>
+          <a class="invoice-link-sm" href="{% url 'invoice_detail' booking.pk %}">Invoice (Paid) ↗</a>
+        </div>
+        {% elif booking.payment_pending_verification and not booking.is_paid %}
+        <div class="booking-inline-alert">
+          <span class="badge-pending">⏳ UPI Ref: {{ booking.payment_reference }} (Verification Pending)</span>
+          <a class="invoice-link-sm" href="{% url 'invoice_detail' booking.pk %}">Invoice ↗</a>
+        </div>
+        {% elif booking.has_invoice and not booking.is_paid %}
+        <div class="booking-inline-alert">
+          <a class="button button-red button-xs" href="{% url 'invoice_detail' booking.pk %}">Pay ₹{{ booking.effective_price|floatformat:2 }} via UPI ↗</a>
+        </div>
+        {% endif %}
+      </div>
+      <span class="status status-{{ booking.status }}">
+        {% if booking.is_paid %}PAID{% elif booking.payment_pending_verification %}VERIFYING PAYMENT{% else %}{{ booking.get_status_display }}{% endif %}
+      </span>
+      <span class="booking-cost">₹{{ booking.effective_price|floatformat:2 }}</span>
+    </article>
+    {% empty %}
+    <div class="empty-state">
+      <span>01</span>
+      <h3>NOTHING ON THE LIFT.</h3>
+      <p>Your upcoming appointments will show here.</p>
+      <a href="{% url 'book_service' %}" class="text-link">Schedule a service →</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="history-link">
+    <span>{{ booking_count }} TOTAL APPOINTMENT{{ booking_count|pluralize }}</span>
+    <a class="text-link" href="{% url 'booking_history' %}">View full service history →</a>
+  </div>
+</section>
 {% endblock %}

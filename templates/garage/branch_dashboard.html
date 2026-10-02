@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}{{ location.name }} Branch Desk | THE GARAGE{% endblock %}
+{% block content %}
+<section class="page-intro account-intro"><p class="eyebrow"><span></span> BRANCH MANAGEMENT</p><h1>{{ location.name|upper }}<br><em>BOOKINGS.</em></h1><p>{{ location.address }}, {{ location.city }}, {{ location.region }} {{ location.postal_code }}</p></section>
+<section class="section branch-dashboard">
+  <div class="history-title"><h2>BOOKING QUEUE</h2><span>{{ bookings|length|stringformat:'02d' }} TOTAL</span></div>
+  <div class="branch-booking-list">
+    {% for booking in bookings %}
+    <article class="branch-booking-card">
+      <div class="branch-booking-top"><div><span class="detail-label">REQUEST TG-{{ booking.pk|stringformat:'06d' }}</span><h3>{{ booking.service.name }}</h3></div><span class="status status-{{ booking.status }}">{{ booking.get_status_display }}</span></div>
+      <div class="branch-booking-details">
+        <div><span>CUSTOMER</span><strong>{{ booking.customer.get_full_name|default:booking.customer.username }}</strong><small>{{ booking.customer.email }}</small></div>
+        <div><span>VEHICLE</span><strong>{{ booking.vehicle_number }} · {{ booking.get_vehicle_type_display }}{% if booking.car_type %} / {{ booking.get_car_type_display }}{% endif %}</strong><small>{{ booking.vehicle }}</small></div>
+        <div><span>APPOINTMENT</span><strong>{{ booking.appointment_date|date:'d M Y' }}</strong><small>{{ booking.appointment_time|time:'g:i A' }}</small></div>
+        <div><span>CUSTOMER NOTES</span><strong>{{ booking.notes|default:'No additional notes' }}</strong></div>
+      </div>
+      {% if booking.status == 'pending' %}
+      <div class="branch-actions">
+        <form method="post" action="{% url 'branch_booking_action' booking.pk %}">{% csrf_token %}<input type="hidden" name="action" value="accept"><button class="button button-red" type="submit">Accept booking <span>✓</span></button></form>
+        <form method="post" action="{% url 'branch_booking_action' booking.pk %}">{% csrf_token %}<input type="hidden" name="action" value="decline"><button class="branch-text-action" type="submit">Decline request</button></form>
+      </div>
+      {% elif booking.status == 'confirmed' %}
+      <div class="branch-confirmed-wrap">
+        <form class="branch-complete-form" method="post" action="{% url 'branch_booking_action' booking.pk %}">
+          {% csrf_token %}
+          <label for="final-price-{{ booking.pk }}">Update invoice amount (₹)</label>
+          <input id="final-price-{{ booking.pk }}" name="final_price" type="number" min="0.01" step="0.01" value="{{ booking.effective_price }}" required>
+          <button class="button button-red button-sm" type="submit" name="action" value="update_invoice">Update invoice <span>↗</span></button>
+          <button class="button button-outline button-sm" type="submit" name="action" value="complete">Complete service</button>
+        </form>
+        {% if booking.payment_pending_verification and not booking.is_paid %}
+        <div class="branch-verify-box" style="margin-top: 12px; padding: 12px; background: rgba(243, 156, 18, 0.15); border: 1px solid #f39c12; border-radius: 4px;">
+          <span class="badge-pending-verify" style="color: #f39c12; font-weight: 700; display: block; margin-bottom: 4px;">⚠️ Customer Submitted UPI Ref: <b>{{ booking.payment_reference }}</b></span>
+          <p style="margin: 0 0 8px; font-size: 11px; color: #cfcfcf;">Confirm received amount ₹{{ booking.effective_price|floatformat:2 }} in your UPI account.</p>
+          <form method="post" action="{% url 'branch_booking_action' booking.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="verify_payment">
+            <button class="button button-red button-sm" type="submit">Verify Payment &amp; Mark Ready for Delivery ✓</button>
+          </form>
+        </div>
+        {% elif booking.is_paid %}
+        <div class="branch-completed-summary">
+          <span class="badge-ready">✓ Paid via UPI (Ref: {{ booking.payment_reference }})</span>
+          <strong>🚗 Vehicle ready to deliver</strong>
+        </div>
+        {% else %}
+        <form method="post" action="{% url 'branch_booking_action' booking.pk %}" style="margin-top: 10px;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="mark_paid">
+          <button class="branch-text-action" type="submit">Verify Payment Received ✓</button>
+        </form>
+        {% endif %}
+      </div>
+      {% elif booking.status == 'completed' %}
+      <div class="branch-completed-summary">
+        <span>FINAL INVOICE · PUBLISHED TO CUSTOMER PORTAL</span>
+        <strong>₹{{ booking.effective_price|floatformat:2 }}</strong>
+        {% if booking.payment_pending_verification and not booking.is_paid %}
+        <div class="branch-verify-box" style="margin-top: 12px; padding: 12px; background: rgba(243, 156, 18, 0.15); border: 1px solid #f39c12; border-radius: 4px;">
+          <span class="badge-pending-verify" style="color: #f39c12; font-weight: 700; display: block; margin-bottom: 4px;">⚠️ Customer Submitted UPI Ref: <b>{{ booking.payment_reference }}</b></span>
+          <p style="margin: 0 0 8px; font-size: 11px; color: #cfcfcf;">Confirm received amount ₹{{ booking.effective_price|floatformat:2 }} in your UPI account.</p>
+          <form method="post" action="{% url 'branch_booking_action' booking.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="verify_payment">
+            <button class="button button-red button-sm" type="submit">Verify Payment &amp; Mark Ready for Delivery ✓</button>
+          </form>
+        </div>
+        {% elif booking.is_paid %}
+        <span class="badge-ready">✓ PAID · 🚗 READY TO DELIVER</span>
+        {% else %}
+        <form method="post" action="{% url 'branch_booking_action' booking.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="mark_paid">
+          <button class="branch-text-action" type="submit">Mark Paid &amp; Deliver ✓</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endif %}
+    </article>
+    {% empty %}<div class="empty-state"><h3>NO BOOKINGS FOR THIS BRANCH.</h3><p>New requests for {{ location.name }} will appear here.</p></div>{% endfor %}
+  </div>
+</section>
+{% endblock %}

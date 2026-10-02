@@ -2,5 +2,83 @@
 {% block title %}Service History | THE GARAGE{% endblock %}
 {% block content %}
 <section class="page-intro account-intro"><p class="eyebrow"><span></span> YOUR VEHICLE RECORD</p><h1>SERVICE<br><em>HISTORY.</em></h1><p>Every visit, every detail, right where you need it.</p></section>
-<section class="section dashboard-section history-section"><div class="history-group"><div class="history-title"><h2>UPCOMING</h2><span>{{ upcoming|length|stringformat:'02d' }}</span></div><div class="booking-list">{% for booking in upcoming %}<article class="booking-row"><div class="booking-date"><b>{{ booking.appointment_date|date:'d' }}</b><span>{{ booking.appointment_date|date:'M Y'|upper }}</span></div><div class="booking-info"><h3>{{ booking.service.name }}</h3><p>{{ booking.vehicle }} &nbsp;·&nbsp; {{ booking.appointment_time|time:'g:i A' }}</p></div><span class="status status-{{ booking.status }}">{{ booking.get_status_display }}</span><span class="booking-cost">₹{{ booking.service.price|floatformat:2 }}</span></article>{% empty %}<p class="history-empty">No upcoming appointments. <a href="{% url 'book_service' %}">Book your next visit →</a></p>{% endfor %}</div></div><div class="history-group"><div class="history-title"><h2>PAST VISITS</h2><span>{{ history|length|stringformat:'02d' }}</span></div><div class="booking-list">{% for booking in history %}<article class="booking-row"><div class="booking-date"><b>{{ booking.appointment_date|date:'d' }}</b><span>{{ booking.appointment_date|date:'M Y'|upper }}</span></div><div class="booking-info"><h3>{{ booking.service.name }}</h3><p>{{ booking.vehicle }} &nbsp;·&nbsp; {{ booking.appointment_time|time:'g:i A' }}</p></div><span class="status status-{{ booking.status }}">{{ booking.get_status_display }}</span><span class="booking-cost">₹{{ booking.service.price|floatformat:2 }}</span></article>{% empty %}<p class="history-empty">Your completed service records will appear here.</p>{% endfor %}</div></div></section>
+<section class="section dashboard-section history-section">
+	<div class="history-group">
+		<div class="history-title"><h2>UPCOMING</h2><span>{{ upcoming|length|stringformat:'02d' }}</span></div>
+		<div class="booking-list">
+			{% for booking in upcoming %}
+			<article class="booking-row">
+				<div class="booking-date"><b>{{ booking.appointment_date|date:'d' }}</b><span>{{ booking.appointment_date|date:'M Y'|upper }}</span></div>
+				<div class="booking-info">
+					<h3>{{ booking.service.name }}</h3>
+					<p>{{ booking.vehicle_number }} · {{ booking.get_vehicle_type_display }}{% if booking.car_type %} / {{ booking.get_car_type_display }}{% endif %} · {{ booking.location.name|default:'Central garage' }} · {{ booking.appointment_time|time:'g:i A' }}</p>
+					{% if booking.is_vehicle_ready %}
+					<div class="invoice-row-actions">
+						<span class="badge-ready">🚗 Vehicle ready to deliver</span>
+						<a href="{% url 'invoice_detail' booking.pk %}">View invoice (Paid) ↗</a>
+						<a href="{% url 'invoice_pdf' booking.pk %}">PDF ↓</a>
+					</div>
+					{% elif booking.payment_pending_verification and not booking.is_paid %}
+					<div class="invoice-row-actions">
+						<span class="badge-pending">⏳ UPI Pending Admin Verification</span>
+						<a href="{% url 'invoice_detail' booking.pk %}">View invoice ↗</a>
+						<a href="{% url 'invoice_pdf' booking.pk %}">PDF ↓</a>
+					</div>
+					{% elif booking.has_invoice and not booking.is_paid %}
+					<div class="invoice-row-actions">
+						<a class="button button-red button-xs" href="{% url 'invoice_detail' booking.pk %}">Pay ₹{{ booking.effective_price|floatformat:2 }} via UPI ↗</a>
+						<a href="{% url 'invoice_pdf' booking.pk %}">PDF ↓</a>
+					</div>
+					{% endif %}
+				</div>
+				<span class="status status-{{ booking.status }}">{% if booking.is_paid %}PAID{% elif booking.payment_pending_verification %}VERIFYING PAYMENT{% else %}{{ booking.get_status_display }}{% endif %}</span>
+				<span class="booking-cost">₹{{ booking.effective_price|floatformat:2 }}</span>
+			</article>
+			{% empty %}<p class="history-empty">No upcoming appointments. <a href="{% url 'book_service' %}">Book your next visit →</a></p>{% endfor %}
+		</div>
+	</div>
+	<div class="history-group">
+		<div class="history-title"><h2>PAST VISITS</h2><span>{{ history|length|stringformat:'02d' }}</span></div>
+		<div class="booking-list">
+			{% for booking in history %}
+			<article class="booking-row">
+				<div class="booking-date"><b>{{ booking.appointment_date|date:'d' }}</b><span>{{ booking.appointment_date|date:'M Y'|upper }}</span></div>
+				<div class="booking-info">
+					<h3>{{ booking.service.name }}</h3>
+					<p>{{ booking.vehicle_number }} · {{ booking.get_vehicle_type_display }}{% if booking.car_type %} / {{ booking.get_car_type_display }}{% endif %} · {{ booking.location.name|default:'Central garage' }} · {{ booking.appointment_time|time:'g:i A' }}</p>
+					{% if booking.is_vehicle_ready %}
+					<div class="invoice-row-actions">
+						<span class="badge-ready">🚗 Vehicle ready to deliver</span>
+						<a href="{% url 'invoice_detail' booking.pk %}">View invoice (Paid) ↗</a>
+						<a href="{% url 'invoice_pdf' booking.pk %}">PDF ↓</a>
+					</div>
+					{% elif booking.payment_pending_verification and not booking.is_paid %}
+					<div class="invoice-row-actions">
+						<span class="badge-pending">⏳ UPI Pending Admin Verification</span>
+						<a href="{% url 'invoice_detail' booking.pk %}">View invoice ↗</a>
+						<a href="{% url 'invoice_pdf' booking.pk %}">PDF ↓</a>
+					</div>
+					{% elif booking.has_invoice and not booking.is_paid %}
+					<div class="invoice-row-actions">
+						<a class="button button-red button-xs" href="{% url 'invoice_detail' booking.pk %}">Pay ₹{{ booking.effective_price|floatformat:2 }} via UPI ↗</a>
+						<a href="{% url 'invoice_pdf' booking.pk %}">PDF ↓</a>
+					</div>
+					{% elif booking.has_invoice %}
+					<div class="invoice-row-actions">
+						<a href="{% url 'invoice_detail' booking.pk %}">View invoice</a>
+						<a href="{% url 'invoice_pdf' booking.pk %}">Download PDF ↓</a>
+					</div>
+					{% elif booking.status == 'declined' or booking.status == 'cancelled' %}
+					<small class="invoice-pending-note">No invoice for this booking.</small>
+					{% else %}
+					<small class="invoice-pending-note">Invoice updated after inspection / service.</small>
+					{% endif %}
+				</div>
+				<span class="status status-{{ booking.status }}">{% if booking.is_paid %}PAID{% elif booking.payment_pending_verification %}VERIFYING PAYMENT{% else %}{{ booking.get_status_display }}{% endif %}</span>
+				<span class="booking-cost">₹{{ booking.effective_price|floatformat:2 }}</span>
+			</article>
+			{% empty %}<p class="history-empty">Your completed service records will appear here.</p>{% endfor %}
+		</div>
+	</div>
+</section>
 {% endblock %}

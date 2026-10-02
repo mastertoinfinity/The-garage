@@ -1,0 +1,132 @@
+---
+- name: Deploy The Garage Automotive Web Application
+  hosts: webservers
+  become: yes
+  vars:
+    app_image: "mastertoinfinity/the-garage:latest"
+    container_name: "the_garage_webapp"
+    app_port: 8000
+    django_secret_key: "production-secret-key-change-in-vault-or-cli"
+    django_debug: "False"
+    django_allowed_hosts: "*"
+    django_csrf_trusted: "http://*"
+
+  tasks:
+    - name: Update apt cache and upgrade system packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+        cache_valid_time: 3600
+
+    - name: Install required system packages
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - nginx
+          - docker.io
+          - docker-compose-plugin
+          - python3-docker
+        state: present
+
+    - name: Ensure Docker service is enabled and started
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Ensure Nginx service is enabled and started
+      systemd:
+        name: nginx
+        enabled: yes
+        state: started
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Create application data directory for persistence
+      file:
+        path: /opt/the_garage/data
+        state: directory
+        owner: "1000"
+        group: "1000"
+        mode: "0755"
+
+    - name: Configure Nginx reverse proxy
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/sites-available/the_garage.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload Nginx
+
+    - name: Enable Nginx configuration
+      file:
+        src: /etc/nginx/sites-available/the_garage.conf
+        dest: /etc/nginx/sites-enabled/the_garage.conf
+        state: link
+      notify: Reload Nginx
+
+    - name: Remove default Nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload Nginx
+
+    - name: Flush handlers to reload Nginx immediately
+      meta: flush_handlers
+
+    - name: Pull latest application Docker image
+      command: "docker pull {{ app_image }}"
+      register: docker_pull_result
+      changed_when: "'Downloaded newer image' in docker_pull_result.stdout"
+
+    - name: Stop and remove existing application container if running
+      shell: "docker stop {{ container_name }} && docker rm {{ container_name }}"
+      failed_when: false
+      changed_when: false
+
+    - name: Run The Garage Docker container
+      command: >
+        docker run -d
+        --name {{ container_name }}
+        --restart always
+        -p 127.0.0.1:{{ app_port }}:8000
+        -e DJANGO_SECRET_KEY="{{ django_secret_key }}"
+        -e DJANGO_DEBUG="{{ django_debug }}"
+        -e DJANGO_ALLOWED_HOSTS="{{ django_allowed_hosts }}"
+        -e DJANGO_CSRF_TRUSTED_ORIGINS="{{ django_csrf_trusted }}"
+        -v /opt/the_garage/data:/app/data
+        {{ app_image }}
+
+    - name: Wait for application port to become available
+      wait_for:
+        port: 80
+        delay: 5
+        timeout: 60
+
+    - name: Verify application endpoint is responding
+      uri:
+        url: "http://127.0.0.1/"
+        status_code: 200
+        return_content: yes
+      register: app_health
+      until: app_health.status == 200
+      retries: 5
+      delay: 5
+
+    - name: Display deployment success message
+      debug:
+        msg: "The Garage Web App deployed successfully and responding at http://{{ ansible_host }}/"
+
+  handlers:
+    - name: Reload Nginx
+      systemd:
+        name: nginx
+        state: reloaded
