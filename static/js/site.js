@@ -63,22 +63,6 @@ const countObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.count-up').forEach((el) => countObserver.observe(el));
 
-/* ─── Car hotspot keyboard accessibility ─────────────────────────────────────── */
-document.querySelectorAll('.car-hotspot').forEach((hotspot) => {
-  const dot = hotspot.querySelector('.hotspot-dot');
-  if (dot) {
-    dot.setAttribute('tabindex', '0');
-    dot.setAttribute('role', 'button');
-    dot.setAttribute('aria-label', hotspot.dataset.label || 'Car feature');
-    dot.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        hotspot.classList.toggle('is-focused');
-        e.preventDefault();
-      }
-    });
-  }
-});
-
 /* ─── UPI copy-to-clipboard button ──────────────────────────────────────────── */
 const copyBtn = document.querySelector('.copy-upi-btn');
 if (copyBtn) {

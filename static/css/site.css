@@ -392,14 +392,55 @@ h1 em, h2 em { color: var(--red); font-style: normal; }
 .management-price-form { display: inline-flex; align-items: center; gap: 6px; }
 .management-price-form input { width: 95px; padding: 5px 8px; background: #111214; border: 1px solid #444; color: #fff; font: 12px var(--body); min-height: 28px; }
 .booking-inline-alert { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
-/* ── Car Hotspots ── */
-.car-hotspots { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-.car-hotspot { position: absolute; left: var(--hx); top: var(--hy); pointer-events: auto; }
-.hotspot-dot { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--red); border: 2px solid rgba(255,255,255,.8); box-shadow: 0 0 0 4px rgba(227,73,53,.35); cursor: pointer; transition: transform .2s; }
-.car-hotspot:hover .hotspot-dot, .car-hotspot:focus-within .hotspot-dot { transform: scale(1.4); }
-.hotspot-label { position: absolute; bottom: calc(100% + 9px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 5px 9px; background: rgba(17,20,22,.92); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: .1em; border: 1px solid rgba(255,255,255,.18); pointer-events: none; opacity: 0; transition: opacity .2s, transform .2s; transform: translateX(-50%) translateY(4px); }
-.hotspot-label::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(17,20,22,.92); }
-.car-hotspot:hover .hotspot-label, .car-hotspot:focus-within .hotspot-label { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* ── Hero Spec Bar ── */
+.hero-spec-bar {
+  position: absolute;
+  bottom: 54px;
+  right: 5.2%;
+  z-index: 3;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: rgba(14, 15, 17, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  animation: hero-reveal .72s cubic-bezier(.2,.7,.2,1) both;
+  animation-delay: 3.95s;
+}
+.hero-spec-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 20px;
+}
+.hero-spec-icon {
+  color: var(--red);
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.hero-spec-item strong {
+  display: block;
+  font: 600 12px var(--display);
+  letter-spacing: .04em;
+  color: #fff;
+  white-space: nowrap;
+}
+.hero-spec-item small {
+  display: block;
+  margin-top: 2px;
+  font-size: 9px;
+  color: #8a8a85;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+.hero-spec-divider {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.10);
+  align-self: stretch;
+  flex-shrink: 0;
+}
 
 /* ── Service book arrow ── */
 .service-book-arrow { width: 30px; height: 30px; display: grid; place-items: center; background: #292a2b; color: var(--paper); transition: background .2s, transform .2s; }
@@ -480,7 +521,7 @@ h1 em, h2 em { color: var(--red); font-style: normal; }
   .catalog { grid-template-columns: .35fr 2fr; gap: 25px; }
   .why-us-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .locations-band-inner { grid-template-columns: 1fr; gap: 28px; }
-  .car-hotspots { display: none; }
+  .hero-spec-bar { display: none; }
 }
 @media (max-width: 680px) {
   .topline { padding: 0 5%; font-size: 8px; }

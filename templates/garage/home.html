@@ -28,22 +28,6 @@
            decoding="async"
            width="1800" height="1200">
     </picture>
-
-    {# Interactive hotspot labels on the car #}
-    <div class="car-hotspots" aria-label="Car features">
-      <div class="car-hotspot" style="--hx:69%;--hy:38%;" data-label="Full LED Headlamps">
-        <span class="hotspot-dot" aria-hidden="true"></span>
-        <span class="hotspot-label">Full LED Headlamps</span>
-      </div>
-      <div class="car-hotspot" style="--hx:73%;--hy:55%;" data-label="Sport Alloy Wheels">
-        <span class="hotspot-dot" aria-hidden="true"></span>
-        <span class="hotspot-label">Sport Alloy Wheels</span>
-      </div>
-      <div class="car-hotspot" style="--hx:84%;--hy:45%;" data-label="Performance Brakes">
-        <span class="hotspot-dot" aria-hidden="true"></span>
-        <span class="hotspot-label">Performance Brakes</span>
-      </div>
-    </div>
   </div>
 
   {# Hero copy #}
@@ -54,6 +38,33 @@
     <div class="hero-actions">
       <a class="button button-red" href="{% url 'book_service' %}">Book your service <span>↗</span></a>
       <a class="text-link" href="{% url 'services' %}">Explore services <span>→</span></a>
+    </div>
+  </div>
+
+  {# Clean spec bar — anchored to the bottom of the hero #}
+  <div class="hero-spec-bar" aria-label="Our highlights">
+    <div class="hero-spec-item">
+      <span class="hero-spec-icon" aria-hidden="true">◈</span>
+      <div>
+        <strong>ASE Certified</strong>
+        <small>Every technician on our floor</small>
+      </div>
+    </div>
+    <div class="hero-spec-divider" aria-hidden="true"></div>
+    <div class="hero-spec-item">
+      <span class="hero-spec-icon" aria-hidden="true">◷</span>
+      <div>
+        <strong>Same-Day Service</strong>
+        <small>Most jobs done in under 4 hrs</small>
+      </div>
+    </div>
+    <div class="hero-spec-divider" aria-hidden="true"></div>
+    <div class="hero-spec-item">
+      <span class="hero-spec-icon" aria-hidden="true">◉</span>
+      <div>
+        <strong>12-Month Warranty</strong>
+        <small>On all parts &amp; labour</small>
+      </div>
     </div>
   </div>
 
