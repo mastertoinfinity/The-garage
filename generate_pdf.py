@@ -20,24 +20,38 @@ import os
 
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "THE_GARAGE_Learning_Guide.pdf")
 
-# ─── Color Palette ────────────────────────────────────────────────────────────
-INK        = colors.HexColor("#111214")
-RED        = colors.HexColor("#e34935")
-RED_DEEP   = colors.HexColor("#b32e20")
-LIME       = colors.HexColor("#5a8a00")
-PAPER      = colors.HexColor("#f2f0eb")
-MUTED      = colors.HexColor("#666662")
-RULE       = colors.HexColor("#cccac4")
-CODE_BG    = colors.HexColor("#1e2022")
-CODE_FG    = colors.HexColor("#e8e6e0")
-NOTE_BG    = colors.HexColor("#fff8e8")
-NOTE_BORDER= colors.HexColor("#f39c12")
-TIP_BG     = colors.HexColor("#edfff4")
-TIP_BORDER = colors.HexColor("#2ecc71")
-WARN_BG    = colors.HexColor("#fff0ee")
-WARN_BORDER= colors.HexColor("#e34935")
-HEADER_BG  = colors.HexColor("#111214")
-ALT_ROW    = colors.HexColor("#f7f6f3")
+# ─── High-Contrast Crystal-Clear Color Palette ─────────────────────────────
+DARK_TEXT  = colors.HexColor("#0f172a")  # Deep slate black - 100% readable
+PRIMARY    = colors.HexColor("#dc2626")  # Vibrant crimson red
+DARK_NAVY  = colors.HexColor("#0f172a")  # Deep banner navy
+SLATE_MUTED= colors.HexColor("#475569")  # High contrast slate gray
+RULE_COLOR = colors.HexColor("#cbd5e1")  # Clean border gray
+
+# Aliases for backward compatibility
+RED        = PRIMARY
+INK        = DARK_TEXT
+MUTED      = SLATE_MUTED
+RULE       = RULE_COLOR
+
+# Code block colors
+CODE_BG    = colors.HexColor("#f8fafc")  # Crisp light background
+CODE_BORDER= colors.HexColor("#cbd5e1")  # Clean slate border
+CODE_TEXT  = colors.HexColor("#0f172a")  # High-contrast dark code text
+
+# Callout colors
+NOTE_BG    = colors.HexColor("#fffbeb")
+NOTE_BORDER= colors.HexColor("#f59e0b")
+NOTE_TEXT  = colors.HexColor("#78350f")
+
+TIP_BG     = colors.HexColor("#f0fdf4")
+TIP_BORDER = colors.HexColor("#10b981")
+TIP_TEXT   = colors.HexColor("#064e3b")
+
+WARN_BG    = colors.HexColor("#fef2f2")
+WARN_BORDER= colors.HexColor("#ef4444")
+WARN_TEXT  = colors.HexColor("#7f1d1d")
+
+ALT_ROW    = colors.HexColor("#f1f5f9")
 W, H       = A4
 
 # ─── Styles ───────────────────────────────────────────────────────────────────
@@ -47,61 +61,43 @@ def S(name, **kw):
     return ParagraphStyle(name, **kw)
 
 styles = {
-    "cover_title": S("cover_title", fontSize=48, leading=52, textColor=colors.white,
-                     fontName="Helvetica-Bold", alignment=TA_CENTER, spaceAfter=8),
-    "cover_sub":   S("cover_sub",   fontSize=16, leading=22, textColor=colors.HexColor("#cccac4"),
-                     fontName="Helvetica", alignment=TA_CENTER, spaceAfter=6),
-    "cover_tag":   S("cover_tag",   fontSize=11, leading=16, textColor=RED,
-                     fontName="Helvetica-Bold", alignment=TA_CENTER, spaceAfter=4),
+    "ch_num":  S("ch_num",  fontSize=11, leading=14, textColor=PRIMARY,
+                 fontName="Helvetica-Bold", spaceBefore=22, spaceAfter=4),
+    "h1":      S("h1",  fontSize=22, leading=26, textColor=DARK_TEXT,
+                 fontName="Helvetica-Bold", spaceBefore=18, spaceAfter=8),
+    "h2":      S("h2",  fontSize=15, leading=20, textColor=DARK_TEXT,
+                 fontName="Helvetica-Bold", spaceBefore=16, spaceAfter=6),
+    "h3":      S("h3",  fontSize=12, leading=16, textColor=DARK_TEXT,
+                 fontName="Helvetica-Bold", spaceBefore=12, spaceAfter=4),
+    "h4":      S("h4",  fontSize=10.5, leading=14, textColor=PRIMARY,
+                 fontName="Helvetica-Bold", spaceBefore=8, spaceAfter=3),
 
-    "h_part":   S("h_part",   fontSize=36, leading=42, textColor=colors.white,
-                  fontName="Helvetica-Bold", spaceAfter=6, spaceBefore=0),
-    "h_part_sub": S("h_part_sub", fontSize=14, leading=20, textColor=colors.HexColor("#aaa9a4"),
-                    fontName="Helvetica", spaceAfter=4),
-
-    "ch_num":  S("ch_num",  fontSize=11, leading=14, textColor=RED,
-                 fontName="Helvetica-Bold", spaceBefore=30, spaceAfter=4),
-    "h1":      S("h1",  fontSize=24, leading=30, textColor=INK,
-                 fontName="Helvetica-Bold", spaceBefore=28, spaceAfter=8),
-    "h2":      S("h2",  fontSize=17, leading=22, textColor=INK,
-                 fontName="Helvetica-Bold", spaceBefore=20, spaceAfter=6),
-    "h3":      S("h3",  fontSize=13, leading=18, textColor=INK,
-                 fontName="Helvetica-Bold", spaceBefore=14, spaceAfter=4),
-    "h4":      S("h4",  fontSize=11, leading=16, textColor=RED,
-                 fontName="Helvetica-Bold", spaceBefore=10, spaceAfter=3),
-
-    "body":    S("body",  fontSize=10, leading=16, textColor=INK,
-                 fontName="Helvetica", alignment=TA_JUSTIFY, spaceAfter=8),
-    "body_l":  S("body_l", fontSize=10, leading=16, textColor=INK,
+    "body":    S("body",  fontSize=9.5, leading=15, textColor=DARK_TEXT,
+                 fontName="Helvetica", alignment=TA_LEFT, spaceAfter=7),
+    "body_l":  S("body_l", fontSize=9.5, leading=15, textColor=DARK_TEXT,
                  fontName="Helvetica", alignment=TA_LEFT, spaceAfter=6),
-    "bullet":  S("bullet", fontSize=10, leading=16, textColor=INK,
+    "bullet":  S("bullet", fontSize=9.5, leading=15, textColor=DARK_TEXT,
                  fontName="Helvetica", leftIndent=14, bulletIndent=4,
                  alignment=TA_LEFT, spaceAfter=3, bulletFontName="Helvetica",
-                 bulletFontSize=10, bulletText="•"),
-    "sub_bullet": S("sub_bullet", fontSize=9.5, leading=15, textColor=MUTED,
-                    fontName="Helvetica", leftIndent=28, bulletIndent=18,
+                 bulletFontSize=9.5, bulletText="•"),
+    "sub_bullet": S("sub_bullet", fontSize=9, leading=14, textColor=SLATE_MUTED,
+                    fontName="Helvetica", leftIndent=26, bulletIndent=16,
                     spaceAfter=2, bulletFontName="Helvetica",
-                    bulletFontSize=9.5, bulletText="–"),
-    "code":    S("code",  fontSize=8.5, leading=13, textColor=CODE_FG,
-                 fontName="Courier", backColor=CODE_BG, leftIndent=10,
-                 rightIndent=10, borderPadding=(7,10,7,10), spaceAfter=10,
-                 spaceBefore=6),
-    "inline":  S("inline", fontSize=10, leading=16, textColor=INK,
-                 fontName="Helvetica"),
-    "caption": S("caption", fontSize=8, leading=12, textColor=MUTED,
+                    bulletFontSize=9, bulletText="–"),
+    "code":    S("code",  fontSize=8, leading=11.5, textColor=CODE_TEXT,
+                 fontName="Courier", backColor=CODE_BG, leftIndent=8,
+                 rightIndent=8, borderPadding=(6, 8, 6, 8), spaceAfter=8,
+                 spaceBefore=4),
+    "caption": S("caption", fontSize=8.5, leading=12, textColor=SLATE_MUTED,
                  fontName="Helvetica", alignment=TA_CENTER, spaceAfter=8,
                  spaceBefore=2),
-    "note_text": S("note_text", fontSize=9.5, leading=15, textColor=colors.HexColor("#7a5c00"),
+    "note_text": S("note_text", fontSize=9, leading=14, textColor=NOTE_TEXT,
                    fontName="Helvetica", spaceAfter=0),
-    "tip_text":  S("tip_text",  fontSize=9.5, leading=15, textColor=colors.HexColor("#1a5c35"),
+    "tip_text":  S("tip_text",  fontSize=9, leading=14, textColor=TIP_TEXT,
                    fontName="Helvetica", spaceAfter=0),
-    "warn_text": S("warn_text", fontSize=9.5, leading=15, textColor=colors.HexColor("#8a1a10"),
+    "warn_text": S("warn_text", fontSize=9, leading=14, textColor=WARN_TEXT,
                    fontName="Helvetica", spaceAfter=0),
-    "toc_h1":  S("toc_h1", fontSize=11, leading=16, textColor=INK,
-                 fontName="Helvetica-Bold", spaceAfter=3),
-    "toc_h2":  S("toc_h2", fontSize=9.5, leading=14, textColor=MUTED,
-                 fontName="Helvetica", leftIndent=16, spaceAfter=2),
-    "page_num": S("page_num", fontSize=8, textColor=MUTED,
+    "page_num": S("page_num", fontSize=8, textColor=SLATE_MUTED,
                   fontName="Helvetica", alignment=TA_CENTER),
 }
 
@@ -113,7 +109,7 @@ def p(text, style="body"):
 def sp(h=6):
     return Spacer(1, h)
 
-def rule(thickness=0.5, color=RULE):
+def rule(thickness=0.75, color=RULE_COLOR):
     return HRFlowable(width="100%", thickness=thickness, color=color,
                       spaceAfter=6, spaceBefore=6)
 
@@ -123,18 +119,17 @@ def code_block(text):
 def note(text, kind="note"):
     bg  = {"note": NOTE_BG, "tip": TIP_BG, "warn": WARN_BG}[kind]
     bdr = {"note": NOTE_BORDER, "tip": TIP_BORDER, "warn": WARN_BORDER}[kind]
-    prefix = {"note": "📌 NOTE: ", "tip": "💡 TIP: ", "warn": "⚠️  IMPORTANT: "}[kind]
+    prefix = {"note": "📌 <b>NOTE:</b> ", "tip": "💡 <b>TIP:</b> ", "warn": "⚠️ <b>IMPORTANT:</b> "}[kind]
     sty = {"note": "note_text", "tip": "tip_text", "warn": "warn_text"}[kind]
     content = Paragraph(prefix + text, styles[sty])
     t = Table([[content]], colWidths=[W - 80])
     t.setStyle(TableStyle([
         ("BACKGROUND", (0,0), (-1,-1), bg),
-        ("LINEAFTER",  (0,0), (0,-1), 4, bdr),  # WRONG — left border trick below
-        ("BOX",        (0,0), (-1,-1), 0.5, bdr),
+        ("BOX",        (0,0), (-1,-1), 1, bdr),
         ("LEFTPADDING",  (0,0), (-1,-1), 10),
         ("RIGHTPADDING", (0,0), (-1,-1), 10),
-        ("TOPPADDING",   (0,0), (-1,-1), 8),
-        ("BOTTOMPADDING",(0,0), (-1,-1), 8),
+        ("TOPPADDING",   (0,0), (-1,-1), 7),
+        ("BOTTOMPADDING",(0,0), (-1,-1), 7),
     ]))
     return t
 
@@ -145,59 +140,47 @@ def section_header(number, title):
     return [p(f"CHAPTER {number}", "ch_num"), p(title, "h1"), rule()]
 
 def chapter_page(number, title, subtitle=""):
-    elems = []
-    data = [[
-        Paragraph(f"<font color='#e34935'>CHAPTER {number}</font>", ParagraphStyle(
-            "cp_num", fontSize=13, fontName="Helvetica-Bold",
-            alignment=TA_CENTER, textColor=RED)),
-        Paragraph(title, ParagraphStyle(
-            "cp_title", fontSize=32, leading=38, textColor=colors.white,
-            fontName="Helvetica-Bold", alignment=TA_CENTER)),
-        Paragraph(subtitle, ParagraphStyle(
-            "cp_sub", fontSize=13, textColor=colors.HexColor("#aaa9a4"),
-            fontName="Helvetica", alignment=TA_CENTER)) if subtitle else Spacer(1,1),
-    ]]
     t = Table([[Paragraph(
-        f"<font color='#e34935'>CHAPTER {number}</font><br/><br/>"
-        f"<font color='white' size=30><b>{title}</b></font><br/><br/>"
-        f"<font color='#aaa9a4' size=12>{subtitle}</font>",
-        ParagraphStyle("inner", alignment=TA_CENTER, leading=40,
-                       fontName="Helvetica-Bold", fontSize=30)
+        f"<font color='#ef4444' size=11><b>CHAPTER {number}</b></font><br/><br/>"
+        f"<font color='#ffffff' size=22><b>{title}</b></font><br/><br/>"
+        f"<font color='#cbd5e1' size=11>{subtitle}</font>",
+        ParagraphStyle("inner", alignment=TA_CENTER, leading=28,
+                       fontName="Helvetica-Bold", fontSize=22)
     )]], colWidths=[W - 80])
     t.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,-1), INK),
-        ("ALIGN",      (0,0), (-1,-1), "CENTER"),
-        ("VALIGN",     (0,0), (-1,-1), "MIDDLE"),
-        ("TOPPADDING", (0,0), (-1,-1), 40),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 40),
-        ("LEFTPADDING",  (0,0), (-1,-1), 30),
-        ("RIGHTPADDING", (0,0), (-1,-1), 30),
+        ("BACKGROUND",    (0,0), (-1,-1), DARK_NAVY),
+        ("ALIGN",         (0,0), (-1,-1), "CENTER"),
+        ("VALIGN",        (0,0), (-1,-1), "MIDDLE"),
+        ("TOPPADDING",    (0,0), (-1,-1), 22),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 22),
+        ("LEFTPADDING",   (0,0), (-1,-1), 20),
+        ("RIGHTPADDING",  (0,0), (-1,-1), 20),
     ]))
-    return [PageBreak(), t, sp(20)]
+    return [PageBreak(), t, sp(14)]
 
 def key_value_table(rows, col_widths=None):
     if col_widths is None:
-        col_widths = [120, W - 80 - 130]
+        col_widths = [125, W - 80 - 135]
     data = []
     for k, v in rows:
         k_str = html.escape(str(k))
         v_str = str(v).replace("\n", "<br/>")
         data.append([
-            Paragraph(f"<b>{k_str}</b>", ParagraphStyle("kv_k", fontSize=9, fontName="Helvetica-Bold",
+            Paragraph(f"<b>{k_str}</b>", ParagraphStyle("kv_k", fontSize=8.5, leading=12, fontName="Helvetica-Bold",
                       textColor=colors.white)),
-            Paragraph(v_str, ParagraphStyle("kv_v", fontSize=9, fontName="Helvetica",
-                      textColor=INK))
+            Paragraph(v_str, ParagraphStyle("kv_v", fontSize=8.5, leading=12, fontName="Helvetica",
+                      textColor=DARK_TEXT))
         ])
     t = Table(data, colWidths=col_widths)
     t.setStyle(TableStyle([
-        ("BACKGROUND",    (0,0), (0,-1),  INK),
+        ("BACKGROUND",    (0,0), (0,-1),  colors.HexColor("#1e293b")),
         ("BACKGROUND",    (1,0), (1,-1),  colors.white),
         ("ROWBACKGROUNDS",(1,0), (1,-1),  [colors.white, ALT_ROW]),
-        ("GRID",          (0,0), (-1,-1), 0.4, RULE),
+        ("GRID",          (0,0), (-1,-1), 0.5, RULE_COLOR),
         ("LEFTPADDING",   (0,0), (-1,-1), 8),
         ("RIGHTPADDING",  (0,0), (-1,-1), 8),
-        ("TOPPADDING",    (0,0), (-1,-1), 6),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 6),
+        ("TOPPADDING",    (0,0), (-1,-1), 5),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 5),
         ("VALIGN",        (0,0), (-1,-1), "TOP"),
     ]))
     return t
@@ -207,24 +190,24 @@ def key_value_table(rows, col_widths=None):
 def add_header_footer(canvas, doc):
     canvas.saveState()
     # Top rule
-    canvas.setStrokeColor(RED)
-    canvas.setLineWidth(2)
+    canvas.setStrokeColor(PRIMARY)
+    canvas.setLineWidth(1.5)
     canvas.line(40, H - 32, W - 40, H - 32)
     # Header text
     canvas.setFont("Helvetica-Bold", 8)
-    canvas.setFillColor(INK)
-    canvas.drawString(40, H - 25, "THE GARAGE")
+    canvas.setFillColor(DARK_TEXT)
+    canvas.drawString(40, H - 24, "THE GARAGE")
     canvas.setFont("Helvetica", 8)
-    canvas.setFillColor(MUTED)
-    canvas.drawRightString(W - 40, H - 25, "Complete Learning Guide")
+    canvas.setFillColor(SLATE_MUTED)
+    canvas.drawRightString(W - 40, H - 24, "Complete Learning Guide")
     # Footer rule
-    canvas.setStrokeColor(RULE)
+    canvas.setStrokeColor(RULE_COLOR)
     canvas.setLineWidth(0.5)
-    canvas.line(40, 36, W - 40, 36)
+    canvas.line(40, 34, W - 40, 34)
     # Page number
     canvas.setFont("Helvetica", 8)
-    canvas.setFillColor(MUTED)
-    canvas.drawCentredString(W / 2, 22, f"— {doc.page} —")
+    canvas.setFillColor(SLATE_MUTED)
+    canvas.drawCentredString(W / 2, 22, f"— Page {doc.page} —")
     canvas.restoreState()
 
 # ─── Content builder ──────────────────────────────────────────────────────────
@@ -2239,26 +2222,28 @@ def make_pdf():
     def first_page(canvas, doc):
         # Completely custom cover page
         canvas.saveState()
-        canvas.setFillColor(INK)
+        canvas.setFillColor(DARK_NAVY)
         canvas.rect(0, 0, W, H, fill=1, stroke=0)
-        canvas.setFillColor(RED)
+        canvas.setFillColor(PRIMARY)
         canvas.rect(0, H - 6, W, 6, fill=1, stroke=0)
         canvas.rect(0, 0, W, 4, fill=1, stroke=0)
-        canvas.setFillColor(RED)
+        canvas.setFillColor(PRIMARY)
         canvas.rect(40, 190, 3, 350, fill=1, stroke=0)
-        canvas.setFont("Helvetica-Bold", 52)
+        canvas.setFont("Helvetica-Bold", 48)
         canvas.setFillColor(colors.white)
-        canvas.drawCentredString(W / 2, H - 130, "THE GARAGE")
+        canvas.drawCentredString(W / 2, H - 125, "THE GARAGE")
         canvas.setFont("Helvetica-Bold", 18)
-        canvas.setFillColor(RED)
-        canvas.drawCentredString(W / 2, H - 160, "COMPLETE LEARNING GUIDE")
-        canvas.setStrokeColor(RED)
+        canvas.setFillColor(PRIMARY)
+        canvas.drawCentredString(W / 2, H - 155, "COMPLETE LEARNING GUIDE")
+        canvas.setStrokeColor(PRIMARY)
         canvas.setLineWidth(1)
-        canvas.line(80, H - 178, W - 80, H - 178)
-        canvas.setFont("Helvetica", 12)
-        canvas.setFillColor(colors.HexColor("#aaa9a4"))
-        canvas.drawCentredString(W / 2, H - 200, "Learn Web Development from Zero to Production")
-        canvas.drawCentredString(W / 2, H - 218, "HTML · CSS · JavaScript · Python · Django · Docker · CI/CD · AWS")
+        canvas.line(80, H - 172, W - 80, H - 172)
+        canvas.setFont("Helvetica-Bold", 11)
+        canvas.setFillColor(colors.HexColor("#f8fafc"))
+        canvas.drawCentredString(W / 2, H - 194, "Learn Web Development from Zero to Production")
+        canvas.setFont("Helvetica", 10)
+        canvas.setFillColor(colors.HexColor("#cbd5e1"))
+        canvas.drawCentredString(W / 2, H - 212, "HTML · CSS · JavaScript · Python · Django · Docker · CI/CD · AWS")
         chapters = [
             "01  What is Web Development?",       "11  Authentication — Login System",
             "02  HTML — Structure of Web Pages",  "12  The UPI Payment Flow",
@@ -2271,21 +2256,21 @@ def make_pdf():
             "09  Views — Business Logic",          "19  Industry Standards",
             "10  Templates — HTML Layer",          "20  What to Learn Next",
         ]
-        canvas.setFont("Helvetica-Bold", 8.5)
-        canvas.setFillColor(RED)
-        canvas.drawString(56, H - 255, "CONTENTS")
+        canvas.setFont("Helvetica-Bold", 9)
+        canvas.setFillColor(PRIMARY)
+        canvas.drawString(56, H - 248, "CONTENTS")
         canvas.setFont("Helvetica", 9)
-        y = H - 273
+        y = H - 266
         for i in range(0, len(chapters), 2):
             left_text  = chapters[i]
             right_text = chapters[i+1] if i+1 < len(chapters) else ""
-            c = colors.white if (i // 2) % 2 == 0 else colors.HexColor("#cccccc")
+            c = colors.white if (i // 2) % 2 == 0 else colors.HexColor("#e2e8f0")
             canvas.setFillColor(c)
             canvas.drawString(56, y, left_text)
             canvas.drawString(W / 2 + 10, y, right_text)
             y -= 15
         canvas.setFont("Helvetica", 8.5)
-        canvas.setFillColor(MUTED)
+        canvas.setFillColor(colors.HexColor("#94a3b8"))
         canvas.drawString(40, 52, "Project: mastertoinfinity/The-Garage")
         canvas.drawString(40, 38, "Django 5.2 · Python 3.12 · Docker · Terraform · Ansible · Jenkins")
         canvas.drawRightString(W - 40, 52, "For Personal Learning")
