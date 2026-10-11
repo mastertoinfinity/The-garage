@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard | THE GARAGE{% endblock %}
+{% block content %}
+<section class="page-intro account-intro"><p class="eyebrow"><span></span> THE GARAGE OPERATIONS</p><h1>ADMIN<br><em>DASHBOARD.</em></h1><p>All branches · {{ user.get_full_name|default:user.username }}</p></section>
+<section class="section management-dashboard">
+  <div class="management-actions"><a class="button button-red" href="/admin/">Open Django admin <span>↗</span></a><a class="text-link" href="{% url 'contact' %}">View customer locations <span>→</span></a></div>
+  <div class="management-stats">
+    <article><span>ACTIVE BRANCHES</span><strong>{{ branch_count|stringformat:'02d' }}</strong></article>
+    <article><span>ALL BOOKINGS</span><strong>{{ booking_count|stringformat:'02d' }}</strong></article>
+    <article><span>AWAITING REVIEW</span><strong>{{ pending_count|stringformat:'02d' }}</strong></article>
+    <article><span>CONFIRMED</span><strong>{{ confirmed_count|stringformat:'02d' }}</strong></article>
+    <article><span>COMPLETED</span><strong>{{ completed_count|stringformat:'02d' }}</strong></article>
+  </div>
+  <div class="management-grid">
+    <section class="management-panel"><div class="history-title"><h2>RECENT BOOKINGS</h2><a href="/admin/garage/booking/">Manage all ↗</a></div>
+      <div class="management-bookings">
+        {% for booking in recent_bookings %}
+        <article>
+          <div class="management-booking-main">
+            <strong>{{ booking.service.name }}</strong>
+            <span>{{ booking.customer.get_full_name|default:booking.customer.username }} · {{ booking.location.name|default:'No branch' }}</span>
+            <small>{{ booking.vehicle_number }} · {{ booking.appointment_date|date:'d M Y' }} {{ booking.appointment_time|time:'g:i A' }}</small>
+          </div>
+          {% if booking.status == 'pending' %}
+          <div class="management-booking-actions">
+            <form method="post" action="{% url 'management_booking_action' booking.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="accept">
+              <button class="button button-red button-sm" type="submit">Accept <span>✓</span></button>
+            </form>
+            <form method="post" action="{% url 'management_booking_action' booking.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="decline">
+              <button class="branch-text-action" type="submit">Decline</button>
+            </form>
+          </div>
+          {% elif booking.status == 'confirmed' %}
+          <div class="management-booking-actions">
+            <span class="status status-confirmed">Confirmed</span>
+            <form class="management-price-form" method="post" action="{% url 'management_booking_action' booking.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="update_invoice">
+              <input type="number" step="0.01" min="0.01" name="final_price" value="{{ booking.effective_price }}" placeholder="Amount (₹)" required>
+              <button class="button button-red button-xs" type="submit" title="Update customer invoice amount">Update invoice <span>↗</span></button>
+            </form>
+            {% if booking.payment_pending_verification and not booking.is_paid %}
+            <div class="management-verify-box">
+              <span class="badge-pending-verify">⚠️ UPI Verification Needed</span>
+              <div class="verify-details">
+                <small>Customer UTR: <b>{{ booking.payment_reference }}</b></small>
+                <small>Amount: <b>₹{{ booking.effective_price|floatformat:2 }}</b></small>
+              </div>
+              <form method="post" action="{% url 'management_booking_action' booking.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="verify_payment">
+                <button class="button button-red button-xs" type="submit" title="Verify transaction and enable vehicle delivery">Verify &amp; Clear Delivery ✓</button>
+              </form>
+            </div>
+            {% elif booking.is_paid %}
+            <span class="badge-ready">✓ Paid · 🚗 Ready to deliver</span>
+            {% else %}
+            <form method="post" action="{% url 'management_booking_action' booking.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="mark_paid">
+              <button class="branch-text-action" type="submit" title="Verify customer payment">Mark Paid ✓</button>
+            </form>
+            {% endif %}
+          </div>
+          {% elif booking.status == 'completed' %}
+          <div class="management-booking-actions">
+            <span class="status status-completed">Completed (₹{{ booking.effective_price|floatformat:2 }})</span>
+            {% if booking.payment_pending_verification and not booking.is_paid %}
+            <div class="management-verify-box">
+              <span class="badge-pending-verify">⚠️ UPI Verification Needed</span>
+              <div class="verify-details">
+                <small>Customer UTR: <b>{{ booking.payment_reference }}</b></small>
+                <small>Amount: <b>₹{{ booking.effective_price|floatformat:2 }}</b></small>
+              </div>
+              <form method="post" action="{% url 'management_booking_action' booking.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="verify_payment">
+                <button class="button button-red button-xs" type="submit" title="Verify transaction and enable vehicle delivery">Verify &amp; Clear Delivery ✓</button>
+              </form>
+            </div>
+            {% elif booking.is_paid %}
+            <span class="badge-ready">✓ Paid · 🚗 Ready to deliver</span>
+            {% else %}
+            <form method="post" action="{% url 'management_booking_action' booking.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="mark_paid">
+              <button class="branch-text-action" type="submit">Mark Paid ✓</button>
+            </form>
+            {% endif %}
+          </div>
+          {% else %}
+          <span class="status status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+          {% endif %}
+        </article>
+        {% empty %}
+        <p class="history-empty">No bookings yet.</p>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="management-panel"><div class="history-title"><h2>BRANCHES</h2><a href="/admin/garage/garagelocation/">Manage branches ↗</a></div>
+      <div class="management-branches">{% for location in locations %}<article><span class="branch-live-dot"></span><div><strong>{{ location.name }}</strong><small>{{ location.city }}, {{ location.region }} {{ location.postal_code }}</small></div><span>{% if location.manager %}{{ location.manager.get_full_name|default:location.manager.username }}{% else %}Unassigned{% endif %}</span></article>{% empty %}<p class="history-empty">No active branches.</p>{% endfor %}</div>
+    </section>
+  </div>
+</section>
+{% endblock %}

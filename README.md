@@ -13,7 +13,13 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Open `http://127.0.0.1:8000/`. The development server uses SQLite and the service catalog is loaded by a data migration. The admin is at `/admin/`.
+Open `http://127.0.0.1:8000/`. The development server uses SQLite and the service catalog is loaded by a data migration. The admin is at `/admin/`. The branch map uses MapLibre GL with OpenFreeMap vector tiles and automatic attribution; it does not request tiles from OpenStreetMap's volunteer raster server. The map starts with three sample Bengaluru branches; replace their addresses, phone numbers, and coordinates in **Garage locations** in Django admin before publishing.
+
+## Branch booking workflow
+
+Create one Django user account for each branch manager. In Django admin, assign that user in the branch's **Manager** field under **Garage locations**. Managers sign in through the normal site login and use **Branch desk** to see only bookings for their assigned branch. They can accept or decline pending requests; accepted jobs can be marked complete with the final invoice amount. Customers see and download the final invoice from **My garage → Service history** after completion.
+
+Central staff sign in at `/management/login/` to open the all-branch dashboard at `/management/`. Django's `/admin/` remains available for configuring users, services, branches, and reviews. Branch-assigned managers are redirected to their own branch desk instead of the all-branch dashboard.
 
 ## Checks
 
