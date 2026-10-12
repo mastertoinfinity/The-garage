@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -6,8 +7,7 @@ pipeline {
         DOCKER_IMAGE_NAME    = 'sujancr09/the-garage'
         DOCKER_TAG           = "${env.BUILD_NUMBER}"
         DOCKER_CREDENTIALS   = 'dockerhub-credentials'
-        AWS_CREDENTIALS      = 'aws-credentials'
-        ANSIBLE_SSH_KEY      = 'server-ssh-key'
+
         DJANGO_SECRET_KEY    = credentials('django-secret-key')
         DJANGO_ALLOWED_HOSTS = '*'
         PYTHONUNBUFFERED     = '1'
@@ -21,6 +21,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 echo "===> Checking out repository..."
@@ -30,32 +31,50 @@ pipeline {
 
         stage('Code Lint & Quality Check') {
             steps {
-                echo "===> Verifying python code syntax and formatting..."
+                echo "===> Verifying Python syntax..."
+
                 sh '''
-                    python3 -m py_compile $(find . -name "*.py" -not -path "./.venv/*")
-                    echo "Syntax check passed successfully."
+                    set -e
+
+                    python3 -m py_compile $(find . \
+                        -name "*.py" \
+                        -not -path "./.venv/*" \
+                        -not -path "./.ci_venv/*" \
+                        -not -path "./.git/*")
+
+                    echo "Python syntax check passed."
                 '''
             }
         }
 
         stage('Run Django Test Suite') {
             steps {
-                echo "===> Executing Django unit and integration tests..."
+                echo "===> Executing Django tests..."
+
                 sh '''
+                    set -e
+
                     python3 -m venv .ci_venv
                     . .ci_venv/bin/activate
+
                     pip install --upgrade pip
                     pip install -r requirements.txt
+
                     python manage.py test
+
                     deactivate
+                    echo "Django tests passed."
                 '''
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo "===> Building Docker image ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}..."
+                echo "===> Building Garage Docker image..."
+
                 sh '''
+                    set -e
+
                     docker build \
                         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_TAG} \
                         --tag ${DOCKER_IMAGE_NAME}:latest \
@@ -66,65 +85,68 @@ pipeline {
 
         stage('Docker Image Smoke Test') {
             steps {
-                echo "===> Testing container runtime and healthcheck..."
+                echo "===> Testing the Docker container..."
+
                 sh '''
-                    docker run -d --name garage_smoke_test -p 8009:8000 \
+                    set -e
+
+                    docker rm -f garage_smoke_test 2>/dev/null || true
+
+                    docker run -d \
+                        --name garage_smoke_test \
+                        -p 8009:8000 \
                         -e DJANGO_SECRET_KEY="ci-smoke-test-secret-key" \
                         -e DJANGO_DEBUG="True" \
                         -e DJANGO_ALLOWED_HOSTS="*" \
                         ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
-                    
-                    sleep 6
-                    curl -f http://127.0.0.1:8009/ || (docker logs garage_smoke_test && exit 1)
-                    docker rm -f garage_smoke_test
-                    echo "Docker container smoke test passed."
+
+                    sleep 10
+
+                    curl --retry 5 \
+                        --retry-connrefused \
+                        --retry-delay 2 \
+                        --fail \
+                        http://127.0.0.1:8009/
+
+                    echo "Docker smoke test passed."
                 '''
+            }
+
+            post {
+                always {
+                    sh 'docker rm -f garage_smoke_test 2>/dev/null || true'
+                }
             }
         }
 
         stage('Push to Container Registry') {
             steps {
-                echo "===> Pushing image to container registry..."
-                withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                echo "===> Pushing image to Docker Hub..."
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: "${DOCKER_CREDENTIALS}",
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
                     sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        set -e
+                        set +x
+
+                        echo "$DOCKER_PASS" | docker login \
+                            --username "$DOCKER_USER" \
+                            --password-stdin
+
                         docker push ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
                         docker push ${DOCKER_IMAGE_NAME}:latest
-                        docker logout
                     '''
                 }
             }
-        }
 
-        stage('Terraform Infrastructure Check') {
-            steps {
-                dir('terraform') {
-                    echo "===> Validating Terraform plan..."
-                    withCredentials([[
-                        $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: "${AWS_CREDENTIALS}"
-                    ]]) {
-                        sh '''
-                            terraform init -backend=false
-                            terraform validate
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage('Deploy via Ansible') {
-            steps {
-                dir('ansible') {
-                    echo "===> Executing Ansible deployment playbook..."
-                    withCredentials([sshUserPrivateKey(credentialsId: "${ANSIBLE_SSH_KEY}", keyFileVariable: 'SSH_KEY_FILE', usernameVariable: 'SSH_USER')]) {
-                        sh '''
-                            ansible-playbook -i inventory.ini playbook.yml \
-                                --private-key "$SSH_KEY_FILE" \
-                                -u "$SSH_USER" \
-                                --extra-vars "app_image=${DOCKER_IMAGE_NAME}:${DOCKER_TAG} django_secret_key=${DJANGO_SECRET_KEY}"
-                        '''
-                    }
+            post {
+                always {
+                    sh 'docker logout || true'
                 }
             }
         }
@@ -133,17 +155,21 @@ pipeline {
     post {
         always {
             echo "===> Cleaning up temporary build artifacts..."
+
             sh '''
                 rm -rf .ci_venv
                 docker rm -f garage_smoke_test 2>/dev/null || true
             '''
+
             cleanWs()
         }
+
         success {
-            echo "Pipeline succeeded! Automotive Web App successfully tested, built, and deployed."
+            echo "Pipeline succeeded! Garage app tested and Docker image published."
         }
+
         failure {
-            echo "Pipeline failed! Please inspect logs above for details."
+            echo "Pipeline failed! Check the Console Output for details."
         }
     }
 }
