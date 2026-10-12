@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_REGISTRY      = 'docker.io'
-        DOCKER_IMAGE_NAME    = 'mastertoinfinity/the-garage'
+        DOCKER_IMAGE_NAME    = 'sujancr09/the-garage'
         DOCKER_TAG           = "${env.BUILD_NUMBER}"
         DOCKER_CREDENTIALS   = 'dockerhub-credentials'
         AWS_CREDENTIALS      = 'aws-credentials'
