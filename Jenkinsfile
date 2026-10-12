@@ -152,53 +152,44 @@ pipeline {
             }
         }
 
-        stage('Deploy to EC2') {
-            steps {
-                echo 'Deploying Garage to the EC2 Docker host...'
+        
+stage('Deploy to EC2') {
+    steps {
+        sh '''
+            set -eu
 
-                // Safety check: the target must be the intended EC2 host.
-                // This stage assumes Jenkins runs on that same host.
-                sh '''
-                    set -eu
+            echo "Pulling the new Garage image..."
+            docker pull ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
-                    # Pull the exact image built by this pipeline.
-                    docker pull ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
+            echo "Removing the old Garage container..."
+            docker rm -f ${CONTAINER_NAME} 2>/dev/null || true
 
-                    # Start the replacement container.
-                    # Keep the existing container until the new one starts.
-                    docker rm -f garage-app-new 2>/dev/null || true
+            echo "Starting the new Garage container..."
+            docker run -d \
+                --name ${CONTAINER_NAME} \
+                --restart unless-stopped \
+                -p ${HOST_PORT}:${CONTAINER_PORT} \
+                -e DJANGO_SECRET_KEY="$DJANGO_SECRET_KEY" \
+                -e DJANGO_ALLOWED_HOSTS="$DJANGO_ALLOWED_HOSTS" \
+                -e PYTHONUNBUFFERED="$PYTHONUNBUFFERED" \
+                ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
-                    docker run -d \
-                        --name garage-app-new \
-                        --restart unless-stopped \
-                        -p ${HOST_PORT}:${CONTAINER_PORT} \
-                        -e DJANGO_SECRET_KEY="$DJANGO_SECRET_KEY" \
-                        -e DJANGO_ALLOWED_HOSTS="$DJANGO_ALLOWED_HOSTS" \
-                        -e PYTHONUNBUFFERED="$PYTHONUNBUFFERED" \
-                        ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
+            echo "Waiting for application startup..."
+            sleep 10
 
-                    # Wait for the new container to become ready.
-                    sleep 10
+            if ! curl --silent --show-error --fail \
+                http://127.0.0.1:${HOST_PORT}/ >/dev/null; then
+                echo "Deployment health check failed!"
+                docker logs ${CONTAINER_NAME} || true
+                exit 1
+            fi
 
-                    # Verify that the application responds before
-                    # replacing the previous container.
-                    if ! curl --silent --show-error --fail \
-                        http://127.0.0.1:${HOST_PORT}/ >/dev/null; then
-                        echo "Deployment health check failed."
-                        docker logs garage-app-new
-                        docker rm -f garage-app-new
-                        exit 1
-                    fi
+            echo "Garage deployed successfully!"
+            docker ps --filter name=${CONTAINER_NAME}
+        '''
+    }
+}
 
-                    # The new container is healthy. Replace the old one.
-                    docker rm -f ${CONTAINER_NAME} 2>/dev/null || true
-                    docker rename garage-app-new ${CONTAINER_NAME}
-
-                    echo "Garage deployment completed successfully."
-                    docker ps --filter name=${CONTAINER_NAME}
-                '''
-            }
-        }
     }
 
     post {
